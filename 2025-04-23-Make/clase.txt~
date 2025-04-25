@@ -1,0 +1,6 @@
+Automatización
+Vamos a ver Makefile
+
+uno pone reglas
+target : dependencies separated by space
+

@@ -1,0 +1,12 @@
+*	-E ( me da todas las lineas de ejecucion)
+*	-E hola.ccp > new.cpp (me manda todas las lineas de ejecución)
+*	wc new.cpp (me da el total de lineas del archivo)
+*	wc -l new.cpp (me da solo las lineas)
+
+Hay otra opcion el "|" me relaciona las 2 cosas y se lo manda al comando, relaciona las cosas
+*	-E hola.cpp | wc -l
+
+*	-c hola.cpp 
+*	file hola.o (me trata de decir que es el archivo) 
+*	Control C   (me mata el proceso)
+*	Control z   (suspende el proceso)
