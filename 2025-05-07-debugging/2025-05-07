@@ -1,0 +1,12 @@
+	Debugging 
+- Rastear fallas inesperadas (Bugs)
+- veremos metodos para hacer debugging
+	- clang format me organiza el codigo, me organiza el formato
+	- Existen librerias que me imprimen datos y caracteristicas mas precisas
+
+g++ -fsanitize=address,leak,undefined source.cpp 
+esto me permite ver los bugs que hay en el programa
+
+con gnb podemos hacer debugging 
+g++ -g -fsanitize=address,leak,undefined debbung_1.cpp 
+gdb ./a.out
