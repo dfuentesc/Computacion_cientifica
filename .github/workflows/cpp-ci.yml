@@ -1,0 +1,22 @@
+name: C++ CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install dependencies (g++, make, Catch2)
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y g++ make catch2
+
+    - name: Build with Makefile
+      run: make /home/dfuentesc/2025-I-IntroSciCompHPC/2025-05-16-unitTesting_2/test_factorial.x
+
+    - name: Run tests
+      run: /home/dfuentesc/2025-I-IntroSciCompHPC/2025-05-16-unitTesting_2 ./test_factorial.x
