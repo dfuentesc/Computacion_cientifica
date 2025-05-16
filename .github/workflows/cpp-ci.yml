@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: "/home/dfuentesc/2025-I-IntroSciCompHPC/2025-05-16-unitTesting_2"
+        working-directory: "2025-05-16-unitTesting_2"
 
     steps:
     - name: Checkout code
