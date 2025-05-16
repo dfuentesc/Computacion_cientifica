@@ -1,0 +1,119 @@
+        -:    0:Source:/mnt/scratch/salafis/v1/spack-packages/linux-slackware15-x86_64_v3/gcc-14.2.0/catch2-3.4.0-aw5g4pqlmg4asvs6vd6hpyiu4bbezmd4/include/catch2/internal/catch_unique_ptr.hpp
+        -:    1:
+        -:    2://              Copyright Catch2 Authors
+        -:    3:// Distributed under the Boost Software License, Version 1.0.
+        -:    4://   (See accompanying file LICENSE.txt or copy at
+        -:    5://        https://www.boost.org/LICENSE_1_0.txt)
+        -:    6:
+        -:    7:// SPDX-License-Identifier: BSL-1.0
+        -:    8:#ifndef CATCH_UNIQUE_PTR_HPP_INCLUDED
+        -:    9:#define CATCH_UNIQUE_PTR_HPP_INCLUDED
+        -:   10:
+        -:   11:#include <cassert>
+        -:   12:#include <type_traits>
+        -:   13:
+        -:   14:#include <catch2/internal/catch_move_and_forward.hpp>
+        -:   15:
+        -:   16:namespace Catch {
+        -:   17:namespace Detail {
+        -:   18:    /**
+        -:   19:     * A reimplementation of `std::unique_ptr` for improved compilation performance
+        -:   20:     *
+        -:   21:     * Does not support arrays nor custom deleters.
+        -:   22:     */
+        -:   23:    template <typename T>
+        -:   24:    class unique_ptr {
+        -:   25:        T* m_ptr;
+        -:   26:    public:
+        -:   27:        constexpr unique_ptr(std::nullptr_t = nullptr):
+        -:   28:            m_ptr{}
+        -:   29:        {}
+        -:   30:        explicit constexpr unique_ptr(T* ptr):
+        -:   31:            m_ptr(ptr)
+        -:   32:        {}
+        -:   33:
+        -:   34:        template <typename U, typename = std::enable_if_t<std::is_base_of<T, U>::value>>
+        -:   35:        unique_ptr(unique_ptr<U>&& from):
+        -:   36:            m_ptr(from.release())
+        -:   37:        {}
+        -:   38:
+        -:   39:        template <typename U, typename = std::enable_if_t<std::is_base_of<T, U>::value>>
+        -:   40:        unique_ptr& operator=(unique_ptr<U>&& from) {
+        -:   41:            reset(from.release());
+        -:   42:
+        -:   43:            return *this;
+        -:   44:        }
+        -:   45:
+        -:   46:        unique_ptr(unique_ptr const&) = delete;
+        -:   47:        unique_ptr& operator=(unique_ptr const&) = delete;
+        -:   48:
+        -:   49:        unique_ptr(unique_ptr&& rhs) noexcept:
+        -:   50:            m_ptr(rhs.m_ptr) {
+        -:   51:            rhs.m_ptr = nullptr;
+        -:   52:        }
+        -:   53:        unique_ptr& operator=(unique_ptr&& rhs) noexcept {
+        -:   54:            reset(rhs.release());
+        -:   55:
+        -:   56:            return *this;
+        -:   57:        }
+        -:   58:
+        1:   59:        ~unique_ptr() {
+       1*:   60:            delete m_ptr;
+        1:   61:        }
+        -:   62:
+        -:   63:        T& operator*() {
+        -:   64:            assert(m_ptr);
+        -:   65:            return *m_ptr;
+        -:   66:        }
+        -:   67:        T const& operator*() const {
+        -:   68:            assert(m_ptr);
+        -:   69:            return *m_ptr;
+        -:   70:        }
+        -:   71:        T* operator->() noexcept {
+        -:   72:            assert(m_ptr);
+        -:   73:            return m_ptr;
+        -:   74:        }
+        -:   75:        T const* operator->() const noexcept {
+        -:   76:            assert(m_ptr);
+        -:   77:            return m_ptr;
+        -:   78:        }
+        -:   79:
+        -:   80:        T* get() { return m_ptr; }
+        -:   81:        T const* get() const { return m_ptr; }
+        -:   82:
+        -:   83:        void reset(T* ptr = nullptr) {
+        -:   84:            delete m_ptr;
+        -:   85:            m_ptr = ptr;
+        -:   86:        }
+        -:   87:
+        -:   88:        T* release() {
+        -:   89:            auto temp = m_ptr;
+        -:   90:            m_ptr = nullptr;
+        -:   91:            return temp;
+        -:   92:        }
+        -:   93:
+        -:   94:        explicit operator bool() const {
+        -:   95:            return m_ptr;
+        -:   96:        }
+        -:   97:
+        -:   98:        friend void swap(unique_ptr& lhs, unique_ptr& rhs) {
+        -:   99:            auto temp = lhs.m_ptr;
+        -:  100:            lhs.m_ptr = rhs.m_ptr;
+        -:  101:            rhs.m_ptr = temp;
+        -:  102:        }
+        -:  103:    };
+        -:  104:
+        -:  105:    //! Specialization to cause compile-time error for arrays
+        -:  106:    template <typename T>
+        -:  107:    class unique_ptr<T[]>;
+        -:  108:
+        -:  109:    template <typename T, typename... Args>
+        -:  110:    unique_ptr<T> make_unique(Args&&... args) {
+        -:  111:        return unique_ptr<T>(new T(CATCH_FORWARD(args)...));
+        -:  112:    }
+        -:  113:
+        -:  114:
+        -:  115:} // end namespace Detail
+        -:  116:} // end namespace Catch
+        -:  117:
+        -:  118:#endif // CATCH_UNIQUE_PTR_HPP_INCLUDED

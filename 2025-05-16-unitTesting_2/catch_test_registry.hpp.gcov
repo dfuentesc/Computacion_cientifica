@@ -1,0 +1,174 @@
+        -:    0:Source:/mnt/scratch/salafis/v1/spack-packages/linux-slackware15-x86_64_v3/gcc-14.2.0/catch2-3.4.0-aw5g4pqlmg4asvs6vd6hpyiu4bbezmd4/include/catch2/internal/catch_test_registry.hpp
+        -:    1:
+        -:    2://              Copyright Catch2 Authors
+        -:    3:// Distributed under the Boost Software License, Version 1.0.
+        -:    4://   (See accompanying file LICENSE.txt or copy at
+        -:    5://        https://www.boost.org/LICENSE_1_0.txt)
+        -:    6:
+        -:    7:// SPDX-License-Identifier: BSL-1.0
+        -:    8:#ifndef CATCH_TEST_REGISTRY_HPP_INCLUDED
+        -:    9:#define CATCH_TEST_REGISTRY_HPP_INCLUDED
+        -:   10:
+        -:   11:#include <catch2/internal/catch_config_static_analysis_support.hpp>
+        -:   12:#include <catch2/internal/catch_source_line_info.hpp>
+        -:   13:#include <catch2/internal/catch_noncopyable.hpp>
+        -:   14:#include <catch2/interfaces/catch_interfaces_test_invoker.hpp>
+        -:   15:#include <catch2/internal/catch_stringref.hpp>
+        -:   16:#include <catch2/internal/catch_unique_ptr.hpp>
+        -:   17:#include <catch2/internal/catch_unique_name.hpp>
+        -:   18:#include <catch2/internal/catch_preprocessor_remove_parens.hpp>
+        -:   19:
+        -:   20:// GCC 5 and older do not properly handle disabling unused-variable warning
+        -:   21:// with a _Pragma. This means that we have to leak the suppression to the
+        -:   22:// user code as well :-(
+        -:   23:#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ <= 5
+        -:   24:#pragma GCC diagnostic ignored "-Wunused-variable"
+        -:   25:#endif
+        -:   26:
+        -:   27:
+        -:   28:
+        -:   29:namespace Catch {
+        -:   30:
+        -:   31:template<typename C>
+        -:   32:class TestInvokerAsMethod : public ITestInvoker {
+        -:   33:    void (C::*m_testAsMethod)();
+        -:   34:public:
+        -:   35:    TestInvokerAsMethod( void (C::*testAsMethod)() ) noexcept : m_testAsMethod( testAsMethod ) {}
+        -:   36:
+        -:   37:    void invoke() const override {
+        -:   38:        C obj;
+        -:   39:        (obj.*m_testAsMethod)();
+        -:   40:    }
+        -:   41:};
+        -:   42:
+        -:   43:Detail::unique_ptr<ITestInvoker> makeTestInvoker( void(*testAsFunction)() );
+        -:   44:
+        -:   45:template<typename C>
+        -:   46:Detail::unique_ptr<ITestInvoker> makeTestInvoker( void (C::*testAsMethod)() ) {
+        -:   47:    return Detail::make_unique<TestInvokerAsMethod<C>>( testAsMethod );
+        -:   48:}
+        -:   49:
+        -:   50:struct NameAndTags {
+        1:   51:    constexpr NameAndTags( StringRef name_ = StringRef(),
+        1:   52:                           StringRef tags_ = StringRef() ) noexcept:
+        1:   53:        name( name_ ), tags( tags_ ) {}
+        -:   54:    StringRef name;
+        -:   55:    StringRef tags;
+        -:   56:};
+        -:   57:
+        -:   58:struct AutoReg : Detail::NonCopyable {
+        -:   59:    AutoReg( Detail::unique_ptr<ITestInvoker> invoker, SourceLineInfo const& lineInfo, StringRef classOrMethod, NameAndTags const& nameAndTags ) noexcept;
+        -:   60:};
+        -:   61:
+        -:   62:} // end namespace Catch
+        -:   63:
+        -:   64:#if defined(CATCH_CONFIG_DISABLE)
+        -:   65:    #define INTERNAL_CATCH_TESTCASE_NO_REGISTRATION( TestName, ... ) \
+        -:   66:        static inline void TestName()
+        -:   67:    #define INTERNAL_CATCH_TESTCASE_METHOD_NO_REGISTRATION( TestName, ClassName, ... ) \
+        -:   68:        namespace{                        \
+        -:   69:            struct TestName : INTERNAL_CATCH_REMOVE_PARENS(ClassName) { \
+        -:   70:                void test();              \
+        -:   71:            };                            \
+        -:   72:        }                                 \
+        -:   73:        void TestName::test()
+        -:   74:#endif
+        -:   75:
+        -:   76:
+        -:   77:#if !defined(CATCH_CONFIG_EXPERIMENTAL_STATIC_ANALYSIS_SUPPORT)
+        -:   78:
+        -:   79:    ///////////////////////////////////////////////////////////////////////////////
+        -:   80:    #define INTERNAL_CATCH_TESTCASE2( TestName, ... ) \
+        -:   81:        static void TestName(); \
+        -:   82:        CATCH_INTERNAL_START_WARNINGS_SUPPRESSION \
+        -:   83:        CATCH_INTERNAL_SUPPRESS_GLOBALS_WARNINGS \
+        -:   84:        CATCH_INTERNAL_SUPPRESS_UNUSED_VARIABLE_WARNINGS \
+        -:   85:        namespace{ const Catch::AutoReg INTERNAL_CATCH_UNIQUE_NAME( autoRegistrar )( Catch::makeTestInvoker( &TestName ), CATCH_INTERNAL_LINEINFO, Catch::StringRef(), Catch::NameAndTags{ __VA_ARGS__ } ); } /* NOLINT */ \
+        -:   86:        CATCH_INTERNAL_STOP_WARNINGS_SUPPRESSION \
+        -:   87:        static void TestName()
+        -:   88:    #define INTERNAL_CATCH_TESTCASE( ... ) \
+        -:   89:        INTERNAL_CATCH_TESTCASE2( INTERNAL_CATCH_UNIQUE_NAME( CATCH2_INTERNAL_TEST_ ), __VA_ARGS__ )
+        -:   90:
+        -:   91:#else  // ^^ !CATCH_CONFIG_EXPERIMENTAL_STATIC_ANALYSIS_SUPPORT | vv CATCH_CONFIG_EXPERIMENTAL_STATIC_ANALYSIS_SUPPORT
+        -:   92:
+        -:   93:
+        -:   94:// Dummy registrator for the dumy test case macros
+        -:   95:namespace Catch {
+        -:   96:    namespace Detail {
+        -:   97:        struct DummyUse {
+        -:   98:            DummyUse( void ( * )( int ) );
+        -:   99:        };
+        -:  100:    } // namespace Detail
+        -:  101:} // namespace Catch
+        -:  102:
+        -:  103:// Note that both the presence of the argument and its exact name are
+        -:  104:// necessary for the section support.
+        -:  105:
+        -:  106:// We provide a shadowed variable so that a `SECTION` inside non-`TEST_CASE`
+        -:  107:// tests can compile. The redefined `TEST_CASE` shadows this with param.
+        -:  108:static int catchInternalSectionHint = 0;
+        -:  109:
+        -:  110:#    define INTERNAL_CATCH_TESTCASE2( fname )                              \
+        -:  111:        static void fname( int );                                          \
+        -:  112:        CATCH_INTERNAL_START_WARNINGS_SUPPRESSION                          \
+        -:  113:        CATCH_INTERNAL_SUPPRESS_GLOBALS_WARNINGS                           \
+        -:  114:        CATCH_INTERNAL_SUPPRESS_UNUSED_VARIABLE_WARNINGS                   \
+        -:  115:        static const Catch::Detail::DummyUse INTERNAL_CATCH_UNIQUE_NAME(   \
+        -:  116:            dummyUser )( &fname );                                         \
+        -:  117:        CATCH_INTERNAL_SUPPRESS_SHADOW_WARNINGS                            \
+        -:  118:        static void fname( [[maybe_unused]] int catchInternalSectionHint ) \
+        -:  119:            CATCH_INTERNAL_STOP_WARNINGS_SUPPRESSION
+        -:  120:#    define INTERNAL_CATCH_TESTCASE( ... ) \
+        -:  121:        INTERNAL_CATCH_TESTCASE2( INTERNAL_CATCH_UNIQUE_NAME( dummyFunction ) )
+        -:  122:
+        -:  123:
+        -:  124:#endif // CATCH_CONFIG_EXPERIMENTAL_STATIC_ANALYSIS_SUPPORT
+        -:  125:
+        -:  126:    ///////////////////////////////////////////////////////////////////////////////
+        -:  127:    #define INTERNAL_CATCH_TEST_CASE_METHOD2( TestName, ClassName, ... )\
+        -:  128:        CATCH_INTERNAL_START_WARNINGS_SUPPRESSION \
+        -:  129:        CATCH_INTERNAL_SUPPRESS_GLOBALS_WARNINGS \
+        -:  130:        CATCH_INTERNAL_SUPPRESS_UNUSED_VARIABLE_WARNINGS \
+        -:  131:        namespace{ \
+        -:  132:            struct TestName : INTERNAL_CATCH_REMOVE_PARENS(ClassName) { \
+        -:  133:                void test(); \
+        -:  134:            }; \
+        -:  135:            const Catch::AutoReg INTERNAL_CATCH_UNIQUE_NAME( autoRegistrar )( \
+        -:  136:            Catch::makeTestInvoker( &TestName::test ),                    \
+        -:  137:            CATCH_INTERNAL_LINEINFO,                                      \
+        -:  138:            #ClassName##_catch_sr,                                        \
+        -:  139:            Catch::NameAndTags{ __VA_ARGS__ } ); /* NOLINT */ \
+        -:  140:        } \
+        -:  141:        CATCH_INTERNAL_STOP_WARNINGS_SUPPRESSION \
+        -:  142:        void TestName::test()
+        -:  143:    #define INTERNAL_CATCH_TEST_CASE_METHOD( ClassName, ... ) \
+        -:  144:        INTERNAL_CATCH_TEST_CASE_METHOD2( INTERNAL_CATCH_UNIQUE_NAME( CATCH2_INTERNAL_TEST_ ), ClassName, __VA_ARGS__ )
+        -:  145:
+        -:  146:
+        -:  147:    ///////////////////////////////////////////////////////////////////////////////
+        -:  148:    #define INTERNAL_CATCH_METHOD_AS_TEST_CASE( QualifiedMethod, ... ) \
+        -:  149:        CATCH_INTERNAL_START_WARNINGS_SUPPRESSION \
+        -:  150:        CATCH_INTERNAL_SUPPRESS_GLOBALS_WARNINGS \
+        -:  151:        CATCH_INTERNAL_SUPPRESS_UNUSED_VARIABLE_WARNINGS \
+        -:  152:        namespace {                                                           \
+        -:  153:        const Catch::AutoReg INTERNAL_CATCH_UNIQUE_NAME( autoRegistrar )( \
+        -:  154:            Catch::makeTestInvoker( &QualifiedMethod ),                   \
+        -:  155:            CATCH_INTERNAL_LINEINFO,                                      \
+        -:  156:            "&" #QualifiedMethod##_catch_sr,                              \
+        -:  157:            Catch::NameAndTags{ __VA_ARGS__ } );                          \
+        -:  158:    } /* NOLINT */ \
+        -:  159:        CATCH_INTERNAL_STOP_WARNINGS_SUPPRESSION
+        -:  160:
+        -:  161:
+        -:  162:    ///////////////////////////////////////////////////////////////////////////////
+        -:  163:    #define INTERNAL_CATCH_REGISTER_TESTCASE( Function, ... ) \
+        -:  164:        do { \
+        -:  165:            CATCH_INTERNAL_START_WARNINGS_SUPPRESSION \
+        -:  166:            CATCH_INTERNAL_SUPPRESS_GLOBALS_WARNINGS \
+        -:  167:            CATCH_INTERNAL_SUPPRESS_UNUSED_VARIABLE_WARNINGS \
+        -:  168:            Catch::AutoReg INTERNAL_CATCH_UNIQUE_NAME( autoRegistrar )( Catch::makeTestInvoker( Function ), CATCH_INTERNAL_LINEINFO, Catch::StringRef(), Catch::NameAndTags{ __VA_ARGS__ } ); /* NOLINT */ \
+        -:  169:            CATCH_INTERNAL_STOP_WARNINGS_SUPPRESSION \
+        -:  170:        } while(false)
+        -:  171:
+        -:  172:
+        -:  173:#endif // CATCH_TEST_REGISTRY_HPP_INCLUDED

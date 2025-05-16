@@ -1,0 +1,122 @@
+        -:    0:Source:/mnt/scratch/salafis/v1/spack-packages/linux-slackware15-x86_64_v3/gcc-14.2.0/catch2-3.4.0-aw5g4pqlmg4asvs6vd6hpyiu4bbezmd4/include/catch2/internal/catch_stringref.hpp
+        -:    1:
+        -:    2://              Copyright Catch2 Authors
+        -:    3:// Distributed under the Boost Software License, Version 1.0.
+        -:    4://   (See accompanying file LICENSE.txt or copy at
+        -:    5://        https://www.boost.org/LICENSE_1_0.txt)
+        -:    6:
+        -:    7:// SPDX-License-Identifier: BSL-1.0
+        -:    8:#ifndef CATCH_STRINGREF_HPP_INCLUDED
+        -:    9:#define CATCH_STRINGREF_HPP_INCLUDED
+        -:   10:
+        -:   11:#include <cstddef>
+        -:   12:#include <string>
+        -:   13:#include <iosfwd>
+        -:   14:#include <cassert>
+        -:   15:
+        -:   16:#include <cstring>
+        -:   17:
+        -:   18:namespace Catch {
+        -:   19:
+        -:   20:    /// A non-owning string class (similar to the forthcoming std::string_view)
+        -:   21:    /// Note that, because a StringRef may be a substring of another string,
+        -:   22:    /// it may not be null terminated.
+        -:   23:    class StringRef {
+        -:   24:    public:
+        -:   25:        using size_type = std::size_t;
+        -:   26:        using const_iterator = const char*;
+        -:   27:
+        -:   28:    private:
+        -:   29:        static constexpr char const* const s_empty = "";
+        -:   30:
+        -:   31:        char const* m_start = s_empty;
+        -:   32:        size_type m_size = 0;
+        -:   33:
+        -:   34:    public: // construction
+        1:   35:        constexpr StringRef() noexcept = default;
+        -:   36:
+        -:   37:        StringRef( char const* rawChars ) noexcept;
+        -:   38:
+       24:   39:        constexpr StringRef( char const* rawChars, size_type size ) noexcept
+       24:   40:        :   m_start( rawChars ),
+       24:   41:            m_size( size )
+       24:   42:        {}
+        -:   43:
+        -:   44:        StringRef( std::string const& stdString ) noexcept
+        -:   45:        :   m_start( stdString.c_str() ),
+        -:   46:            m_size( stdString.size() )
+        -:   47:        {}
+        -:   48:
+        -:   49:        explicit operator std::string() const {
+        -:   50:            return std::string(m_start, m_size);
+        -:   51:        }
+        -:   52:
+        -:   53:    public: // operators
+        -:   54:        auto operator == ( StringRef other ) const noexcept -> bool {
+        -:   55:            return m_size == other.m_size
+        -:   56:                && (std::memcmp( m_start, other.m_start, m_size ) == 0);
+        -:   57:        }
+        -:   58:        auto operator != (StringRef other) const noexcept -> bool {
+        -:   59:            return !(*this == other);
+        -:   60:        }
+        -:   61:
+        -:   62:        constexpr auto operator[] ( size_type index ) const noexcept -> char {
+        -:   63:            assert(index < m_size);
+        -:   64:            return m_start[index];
+        -:   65:        }
+        -:   66:
+        -:   67:        bool operator<(StringRef rhs) const noexcept;
+        -:   68:
+        -:   69:    public: // named queries
+        -:   70:        constexpr auto empty() const noexcept -> bool {
+        -:   71:            return m_size == 0;
+        -:   72:        }
+        -:   73:        constexpr auto size() const noexcept -> size_type {
+        -:   74:            return m_size;
+        -:   75:        }
+        -:   76:
+        -:   77:        // Returns a substring of [start, start + length).
+        -:   78:        // If start + length > size(), then the substring is [start, start + size()).
+        -:   79:        // If start > size(), then the substring is empty.
+        -:   80:        constexpr StringRef substr(size_type start, size_type length) const noexcept {
+        -:   81:            if (start < m_size) {
+        -:   82:                const auto shortened_size = m_size - start;
+        -:   83:                return StringRef(m_start + start, (shortened_size < length) ? shortened_size : length);
+        -:   84:            } else {
+        -:   85:                return StringRef();
+        -:   86:            }
+        -:   87:        }
+        -:   88:
+        -:   89:        // Returns the current start pointer. May not be null-terminated.
+        -:   90:        constexpr char const* data() const noexcept {
+        -:   91:            return m_start;
+        -:   92:        }
+        -:   93:
+        -:   94:        constexpr const_iterator begin() const { return m_start; }
+        -:   95:        constexpr const_iterator end() const { return m_start + m_size; }
+        -:   96:
+        -:   97:
+        -:   98:        friend std::string& operator += (std::string& lhs, StringRef sr);
+        -:   99:        friend std::ostream& operator << (std::ostream& os, StringRef sr);
+        -:  100:        friend std::string operator+(StringRef lhs, StringRef rhs);
+        -:  101:
+        -:  102:        /**
+        -:  103:         * Provides a three-way comparison with rhs
+        -:  104:         *
+        -:  105:         * Returns negative number if lhs < rhs, 0 if lhs == rhs, and a positive
+        -:  106:         * number if lhs > rhs
+        -:  107:         */
+        -:  108:        int compare( StringRef rhs ) const;
+        -:  109:    };
+        -:  110:
+        -:  111:
+        8:  112:    constexpr auto operator ""_sr( char const* rawChars, std::size_t size ) noexcept -> StringRef {
+        8:  113:        return StringRef( rawChars, size );
+        -:  114:    }
+        -:  115:} // namespace Catch
+        -:  116:
+       16:  117:constexpr auto operator ""_catch_sr( char const* rawChars, std::size_t size ) noexcept -> Catch::StringRef {
+       16:  118:    return Catch::StringRef( rawChars, size );
+        -:  119:}
+        -:  120:
+        -:  121:#endif // CATCH_STRINGREF_HPP_INCLUDED

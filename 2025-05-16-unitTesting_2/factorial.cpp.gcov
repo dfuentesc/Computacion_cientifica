@@ -1,0 +1,25 @@
+        -:    0:Source:factorial.cpp
+        -:    1:#include "factorial.h"
+        -:    2:
+       44:    3:long factorial(long number)
+        -:    4:{
+       44:    5:    if (0 == number) return 1;
+       38:    6:    if (number < 0) {
+        2:    7:        std::cerr << "Negative numbers not allowed. Returning -1\n";
+        2:    8:        return -1;
+        -:    9:    }
+      36*:   10:    return number < 0 ? number : factorial(number-1)*number;
+        -:   11:    // number es menor o igual a 1 
+        -:   12:    // ? si se cumple retorna el numero
+        -:   13:    // : si no se cumple retorna factorial(number-1)*number
+        -:   14:}
+        -:   15:
+    #####:   16:double raiz_cuadrada (int number2)
+        -:   17:{
+    #####:   18:    if (number2 < 0){
+    #####:   19:        std::cerr << "numero negativo\n";
+    #####:   20:        return 0;
+        -:   21:    }
+    #####:   22:    return sqrt(number2);
+        -:   23:
+        -:   24:}

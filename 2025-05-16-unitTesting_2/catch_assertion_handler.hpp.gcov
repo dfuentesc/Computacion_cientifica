@@ -1,0 +1,69 @@
+        -:    0:Source:/mnt/scratch/salafis/v1/spack-packages/linux-slackware15-x86_64_v3/gcc-14.2.0/catch2-3.4.0-aw5g4pqlmg4asvs6vd6hpyiu4bbezmd4/include/catch2/internal/catch_assertion_handler.hpp
+        -:    1:
+        -:    2://              Copyright Catch2 Authors
+        -:    3:// Distributed under the Boost Software License, Version 1.0.
+        -:    4://   (See accompanying file LICENSE.txt or copy at
+        -:    5://        https://www.boost.org/LICENSE_1_0.txt)
+        -:    6:
+        -:    7:// SPDX-License-Identifier: BSL-1.0
+        -:    8:#ifndef CATCH_ASSERTION_HANDLER_HPP_INCLUDED
+        -:    9:#define CATCH_ASSERTION_HANDLER_HPP_INCLUDED
+        -:   10:
+        -:   11:#include <catch2/catch_assertion_info.hpp>
+        -:   12:#include <catch2/internal/catch_decomposer.hpp>
+        -:   13:#include <catch2/interfaces/catch_interfaces_capture.hpp>
+        -:   14:
+        -:   15:#include <string>
+        -:   16:
+        -:   17:namespace Catch {
+        -:   18:
+        -:   19:    struct AssertionReaction {
+        -:   20:        bool shouldDebugBreak = false;
+        -:   21:        bool shouldThrow = false;
+        -:   22:        bool shouldSkip = false;
+        -:   23:    };
+        -:   24:
+        -:   25:    class AssertionHandler {
+        -:   26:        AssertionInfo m_assertionInfo;
+        -:   27:        AssertionReaction m_reaction;
+        -:   28:        bool m_completed = false;
+        -:   29:        IResultCapture& m_resultCapture;
+        -:   30:
+        -:   31:    public:
+        -:   32:        AssertionHandler
+        -:   33:            (   StringRef macroName,
+        -:   34:                SourceLineInfo const& lineInfo,
+        -:   35:                StringRef capturedExpression,
+        -:   36:                ResultDisposition::Flags resultDisposition );
+        8:   37:        ~AssertionHandler() {
+       8*:   38:            if ( !m_completed ) {
+    #####:   39:                m_resultCapture.handleIncomplete( m_assertionInfo );
+        -:   40:            }
+        8:   41:        }
+        -:   42:
+        -:   43:
+        -:   44:        template<typename T>
+        -:   45:        void handleExpr( ExprLhs<T> const& expr ) {
+        -:   46:            handleExpr( expr.makeUnaryExpr() );
+        -:   47:        }
+        -:   48:        void handleExpr( ITransientExpression const& expr );
+        -:   49:
+        -:   50:        void handleMessage(ResultWas::OfType resultType, StringRef message);
+        -:   51:
+        -:   52:        void handleExceptionThrownAsExpected();
+        -:   53:        void handleUnexpectedExceptionNotThrown();
+        -:   54:        void handleExceptionNotThrownAsExpected();
+        -:   55:        void handleThrowingCallSkipped();
+        -:   56:        void handleUnexpectedInflightException();
+        -:   57:
+        -:   58:        void complete();
+        -:   59:
+        -:   60:        // query
+        -:   61:        auto allowThrows() const -> bool;
+        -:   62:    };
+        -:   63:
+        -:   64:    void handleExceptionMatchExpr( AssertionHandler& handler, std::string const& str );
+        -:   65:
+        -:   66:} // namespace Catch
+        -:   67:
+        -:   68:#endif // CATCH_ASSERTION_HANDLER_HPP_INCLUDED

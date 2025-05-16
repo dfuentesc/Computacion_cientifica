@@ -1,0 +1,38 @@
+        -:    0:Source:/mnt/scratch/salafis/v1/spack-packages/linux-slackware15-x86_64_v3/gcc-14.2.0/catch2-3.4.0-aw5g4pqlmg4asvs6vd6hpyiu4bbezmd4/include/catch2/internal/catch_source_line_info.hpp
+        -:    1:
+        -:    2://              Copyright Catch2 Authors
+        -:    3:// Distributed under the Boost Software License, Version 1.0.
+        -:    4://   (See accompanying file LICENSE.txt or copy at
+        -:    5://        https://www.boost.org/LICENSE_1_0.txt)
+        -:    6:
+        -:    7:// SPDX-License-Identifier: BSL-1.0
+        -:    8:#ifndef CATCH_SOURCE_LINE_INFO_HPP_INCLUDED
+        -:    9:#define CATCH_SOURCE_LINE_INFO_HPP_INCLUDED
+        -:   10:
+        -:   11:#include <cstddef>
+        -:   12:#include <iosfwd>
+        -:   13:
+        -:   14:namespace Catch {
+        -:   15:
+        -:   16:    struct SourceLineInfo {
+        -:   17:
+        -:   18:        SourceLineInfo() = delete;
+        9:   19:        constexpr SourceLineInfo( char const* _file, std::size_t _line ) noexcept:
+        9:   20:            file( _file ),
+        9:   21:            line( _line )
+        9:   22:        {}
+        -:   23:
+        -:   24:        bool operator == ( SourceLineInfo const& other ) const noexcept;
+        -:   25:        bool operator < ( SourceLineInfo const& other ) const noexcept;
+        -:   26:
+        -:   27:        char const* file;
+        -:   28:        std::size_t line;
+        -:   29:
+        -:   30:        friend std::ostream& operator << (std::ostream& os, SourceLineInfo const& info);
+        -:   31:    };
+        -:   32:}
+        -:   33:
+        -:   34:#define CATCH_INTERNAL_LINEINFO \
+        -:   35:    ::Catch::SourceLineInfo( __FILE__, static_cast<std::size_t>( __LINE__ ) )
+        -:   36:
+        -:   37:#endif // CATCH_SOURCE_LINE_INFO_HPP_INCLUDED
