@@ -9,8 +9,9 @@
 int main(int argc, char **argv) {
     const auto seed = std::chrono::high_resolution_clock::now()
                      .time_since_epoch().count();
-    const long int nsamples = std::atol(argv[1]);
-    const double tes = std::atof(argv[2]);
+    const long int nsamples = std::atoi(argv[1]);
+    const double tes1 = std::atof(argv[2]);
+    double tes = tes1;
     std::mt19937 gen(seed);
     std::uniform_real_distribution<double> dis(0, 1);
     const long int NX = nsamples;
@@ -26,8 +27,8 @@ int main(int argc, char **argv) {
         }
     }
 
-    for(int n = 0; n < NX; ++n) {
-        for (int m = 0; m < NX; ++m){
+    for(int n = 0; n < nsamples; ++n) {
+        for (int m = 0; m < nsamples; ++m){
             x[n][m]= dis(gen);
             if (x[n][m] >= tes){
                 matriz_dinamica[n][m] = 0;
@@ -45,8 +46,14 @@ int main(int argc, char **argv) {
             matriz_vector[i][j] = matriz_dinamica[i][j];
         }
     }
-    //percola(matriz_vector, cont);
+    percola(matriz_vector, cont);
 
-    std::cout << tes << " " << NX << " " <<  percola(matriz_vector, cont) << " " << cont;
+    for(int n = 0; n < nsamples; ++n) {
+        for (int m = 0; m < nsamples; ++m){
+            std::cout<< matriz_vector[n][m]<< "  " ;
+        }
+        std::cout << "\n" ;
+    }
     std::cout << "\n";
+    return 0;
 }
