@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
     for (int i = 0; i < NX; ++i) {
         matriz_dinamica[i] = new int[NX];
         for (int j = 0; j < NX; ++j) {
-            matriz_dinamica[i][j] = 0; // Inicializa con 0s (modifica según necesites)
+            matriz_dinamica[i][j] = 0; // Inicializa con 0s s
         }
     }
 
