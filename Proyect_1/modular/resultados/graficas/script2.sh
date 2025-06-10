@@ -1,6 +1,8 @@
 #!/bin/bash
-# Crear carpeta para resultados
-# Crear carpeta para resultados
+for archivo in *.txt; do
+    sort -k1,1n "$archivo" > tmp && mv tmp "$archivo"
+done
+
 mkdir -p resultados_probabilidad
 # Procesar cada archivo en la carpeta 'graficas'
 
@@ -32,3 +34,12 @@ for archivo in *.txt; do
         }
     }' "$archivo" > "resultados_probabilidad/prob_$archivo"
 done
+
+cd resultados_probabilidad
+
+# Ordenar cada archivo por la primera columna (numérica, decimal)
+for archivo in prob_*.txt; do
+    sort -k1,1g "$archivo" -o "$archivo"
+done
+
+gnuplot graficas.gp

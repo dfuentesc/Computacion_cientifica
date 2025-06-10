@@ -6,7 +6,7 @@ set grid
 set style line 1 lc rgb '#0060ad' pt 7 ps 1   # Define estilo de punto
 
 # Crear carpeta para gráficas
-system "mkdir -p graficas"
+system "mkdir -p graficas_finales"
 
 # Obtener lista de archivos
 filelist = system("ls resultados_probabilidad/*.txt")
